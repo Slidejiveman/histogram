@@ -34,69 +34,6 @@ int calculate_bucket_width(int min_meas, int max_meas, int bucket_count) {
 }
 
 /**
- * Reference: https://stackoverflow.com/questions/6553970/find-the-first-element-in-a-sorted-array-that-is-greater-than-the-target
- * @param numElems
- * @param arr
- * @param target
- * @return
- */
-int binary_search(int numElems, const int* arr, int target) {
-    int low = 0, high = numElems, mid = 0; // numElems is the size of the array i.e arr.size()
-    while (low != high) {
-        mid = (low + high) / 2; // Or a fancy way to avoid int overflow
-        if (arr[mid] <= target) {
-            /* This index, and everything below it, must not be the first element
-             * greater than what we're looking for because this element is no greater
-             * than the element.
-             */
-            low = mid + 1;
-        }
-        else {
-            /* This element is at least as large as the element, so anything after it can't
-             * be the first element that's at least as large.
-             */
-            high = mid;
-        }
-    }
-
-    return mid;
-}
-/**
- * ToDo: Implement this function correctly
- * @param data_element
- * @param bucket_maxes
- * @param bucket_count
- * @param min_meas
- * @return
- */
-int find_bucket(float data_element, const int* bucket_maxes, int bucket_count, int min_meas) {
-    int retval = 0;
-    // this array is used to find the first element that is
-    // higher than the data_element in a sorted array
-    int comparison_array[bucket_count];
-
-    // Assign 1 to the index in the comparison array
-    // if the value of the data element in question is
-    // greater than that of the bucket max.
-    // Assign 0 otherwise.
-    for (int i = 0; i < bucket_count; i++) {
-        if (data_element > bucket_maxes[i]) {
-            comparison_array[i] = 1;
-        } else {
-            comparison_array[i] = 0;
-        }
-    }
-
-    // Now find the first 1
-    retval = binary_search(bucket_count, comparison_array, 1);
-    printf("The retval after the search is: %i\n", retval);
-
-    // retval - 1 should be the largest bucket that the value
-    // can actually fit in.
-    return retval - 1;
-}
-
-/**
  * This program prints a histogram.
  *
  * Reference: http://java-samples.com/showtutorial.php?tutorialid=1576
@@ -137,7 +74,7 @@ int main() {
     /**
      * This is the array of upper bounds for each bucket
      */
-    int bucket_maxes[bucket_count];
+    float bucket_maxes[bucket_count];
     /**
      * These values are the counts for each bucket.
      * The elements in this array can be used to generate
@@ -156,7 +93,8 @@ int main() {
     scanf("%d", &num_data_elements);
     printf("Please input the data elements: \n");
     for(int i = 0; i < num_data_elements; i++) {
-        scanf("%.1f", &data[i]);
+        scanf("%f", &data[i]);
+        printf("You entered: %f\n", data[i]);
     }
     printf("Please enter the minimum data value for a bucket: \n");
     scanf("%d", &min_meas);
@@ -172,18 +110,27 @@ int main() {
     // initialize the bin_maxes
     for (int b = 0; b < bucket_count; b++) {
         bucket_maxes[b] = min_meas + bucket_width * (b+1);
-        printf("The bucket_max for bucket %d is %d: \n", b, bucket_maxes[b]);
+        printf("The bucket_max for bucket %d is %f: \n", b, bucket_maxes[b]);
     }
 
-    // initialize bin_counts
+    // initialize bucket_counts
     for (int b = 0; b < bucket_count; b++) {
         bucket_counts[b] = 0;
     }
 
     // do the counting
     for (int d = 0; d < num_data_elements; d++) {
-        int bucket = find_bucket(data[d], bucket_maxes, bucket_count, min_meas);
-        bucket_counts[bucket]++;
+        for (int m = 0; m < bucket_count; m++) {
+            if (data[d] >= min_meas && data[d] < bucket_maxes[m]) {
+                bucket_counts[m]++;
+                printf("Value of the bucket_count: %i\n", bucket_counts[m]);
+
+                // Once a value is added, we only want to add that value once.
+                // So, the loop needs to end a soon as it adds the value into a bucket.
+                // This is a linear algorithm. It would be nice to make this binary.
+                break;
+            }
+        }
     }
 
     // display the table header...
