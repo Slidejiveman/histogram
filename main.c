@@ -1,6 +1,9 @@
 #include <stdio.h>
-#include <omp.h>
+#ifdef _OPENMP
+# include <omp.h>
+#endif
 
+# define THREAD_COUNT 8
 /**
  * This method prints the header as the first line of the console output.
  */
@@ -13,7 +16,7 @@ void print_header() {
  * @param n - the number of stars to print
  */
 void print_bars(int n) {
-    for(int j = 1; j<= n; j++) {
+    for(int j = 1; j <= n; j++) {
         // print the asterisk bar...repeat...
         printf("*");
     }
@@ -119,11 +122,11 @@ int main() {
     }
 
     // do the counting
+# pragma omp parallel for num_threads(THREAD_COUNT)
     for (int d = 0; d < num_data_elements; d++) {
         for (int m = 0; m < bucket_count; m++) {
             if (data[d] >= min_meas && data[d] < bucket_maxes[m]) {
                 bucket_counts[m]++;
-                printf("Value of the bucket_count: %i\n", bucket_counts[m]);
 
                 // Once a value is added, we only want to add that value once.
                 // So, the loop needs to end a soon as it adds the value into a bucket.
